@@ -1,7 +1,7 @@
 # Deployment Information
 
 ## Public URL
-https://test-deploy-production-e257.up.railway.app
+https://lab12-production-41a2.up.railway.app/
 
 ## Platform
 Railway
