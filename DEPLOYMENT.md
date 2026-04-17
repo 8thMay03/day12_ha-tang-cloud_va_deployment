@@ -10,14 +10,14 @@ Railway
 
 ### Health Check
 ```bash
-curl https://test-deploy-production-e257.up.railway.app/health
+curl https://lab12-production-41a2.up.railway.app//health
 # Expected: {"status": "ok", "uptime_seconds": ..., "platform": "Railway", ...}
 ```
 
 ### API Test (with authentication)
 ```bash
 # Thay THAY_KEY_CUA_BAN bằng API Key thực tế của bạn
-curl -X POST https://test-deploy-production-e257.up.railway.app/ask \
+curl -X POST https://lab12-production-41a2.up.railway.app//ask \
   -H "X-API-Key: your-secret-key-123" \
   -H "Content-Type: application/json" \
   -d '{"user_id": "test", "question": "Khách sạn được không?"}'
