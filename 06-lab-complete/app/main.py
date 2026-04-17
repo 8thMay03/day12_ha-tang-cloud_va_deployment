@@ -32,7 +32,7 @@ import uvicorn
 from app.config import settings
 from app.auth import verify_api_key
 from app.rate_limiter import check_rate_limit
-from app.cost_guard import check_and_record_cost, get_daily_cost
+from app.cost_guard import check_and_record_cost, get_current_cost
 
 # Mock LLM (thay bằng OpenAI/Anthropic khi có API key)
 from utils.mock_llm import ask as llm_ask
@@ -121,6 +121,7 @@ async def request_middleware(request: Request, call_next):
 # Models
 # ─────────────────────────────────────────────────────────
 class AskRequest(BaseModel):
+    user_id: str = Field(default="anonymous", description="User ID for budget tracking")
     question: str = Field(..., min_length=1, max_length=2000,
                           description="Your question for the agent")
 
@@ -164,7 +165,7 @@ async def ask_agent(
 
     # Budget check
     input_tokens = len(body.question.split()) * 2
-    check_and_record_cost(input_tokens, 0)
+    check_and_record_cost(body.user_id, input_tokens, 0)
 
     logger.info(json.dumps({
         "event": "agent_call",
@@ -175,7 +176,7 @@ async def ask_agent(
     answer = llm_ask(body.question)
 
     output_tokens = len(answer.split()) * 2
-    check_and_record_cost(0, output_tokens)
+    check_and_record_cost(body.user_id, 0, output_tokens)
 
     return AskResponse(
         question=body.question,
@@ -212,14 +213,14 @@ def ready():
 @app.get("/metrics", tags=["Operations"])
 def metrics(_key: str = Depends(verify_api_key)):
     """Basic metrics (protected)."""
-    current_cost = get_daily_cost()
+    current_cost = get_current_cost(_key[:8])
     return {
         "uptime_seconds": round(time.time() - START_TIME, 1),
         "total_requests": _request_count,
         "error_count": _error_count,
-        "daily_cost_usd": round(current_cost, 4),
-        "daily_budget_usd": settings.daily_budget_usd,
-        "budget_used_pct": round(current_cost / settings.daily_budget_usd * 100, 1) if settings.daily_budget_usd else 0,
+        "monthly_cost_usd": round(current_cost, 4),
+        "monthly_budget_usd": settings.monthly_budget_usd,
+        "budget_used_pct": round(current_cost / settings.monthly_budget_usd * 100, 1) if settings.monthly_budget_usd else 0,
     }
 
 
