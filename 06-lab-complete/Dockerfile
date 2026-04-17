@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y gcc libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 
 # Stage 2: Runtime
@@ -23,7 +23,9 @@ RUN groupadd -r agent && useradd -r -g agent -d /app agent
 WORKDIR /app
 
 # Copy packages từ builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /root/.local /home/agent/.local
+ENV PYTHONUSERBASE=/home/agent/.local
 
 # Copy application
 COPY app/ ./app/
